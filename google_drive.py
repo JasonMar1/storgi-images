@@ -10,7 +10,7 @@ DOWNLOAD_FOLDER = "images"
 CREDENTIALS_FILE = "client_secret_590736682375-g449nlvol2lg427bbo681n9fmo6vntf7.apps.googleusercontent.com.json"
 
 # Your GitHub username and repo for generating the links later
-GITHUB_USERNAME = "your-username"
+GITHUB_USERNAME = "JasonMar1"
 GITHUB_REPO = "storgi-images"
 
 # Folder IDs from your links
@@ -81,12 +81,18 @@ def match_and_download_images(products, drive_files):
     os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
     rows = []
 
+    saved_skus = set()  # ✅ Keep track of SKUs already saved
+
     for sku, ean in products.items():
         for file in drive_files:
             name = file["name"]
             link = file["link"]
 
             if sku in name or ean in name:
+                if sku in saved_skus:
+                    break  # ✅ Skip further matches for this SKU
+                saved_skus.add(sku)
+
                 filename = f"{sku}.jpg"
                 filepath = os.path.join(DOWNLOAD_FOLDER, filename)
 
@@ -94,10 +100,11 @@ def match_and_download_images(products, drive_files):
                 download_image(link, filepath)
 
                 # Prepare GitHub raw link for this file
-                github_link = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{GITHUB_REPO}/main/{DOWNLOAD_FOLDER}/{filename}"
+                github_link = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{GITHUB_REPO}/refs/heads/main/{filename}"
                 print(f"✅ Matched: SKU: {sku}, EAN: {ean}, GITHUB LINK: {github_link}")
 
                 rows.append((sku, ean, github_link))
+                break  # ✅ Stop checking other images after the first match for this SKU
 
     return rows
 
